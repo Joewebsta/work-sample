@@ -1,3 +1,5 @@
+import { initiateTokenExchange } from "./fetchers";
+
 declare const FlexpaLink: {
   create: ({
     publishableKey,
@@ -9,13 +11,15 @@ declare const FlexpaLink: {
   open: () => unknown;
 };
 
-function handleOnSuccess() {
-  console.log("Success!");
-}
-
 export function initializeFlexpaLink() {
   FlexpaLink.create({
     publishableKey: process.env.NEXT_PUBLIC_PUBLISHABLE_KEY ?? "",
     onSuccess: handleOnSuccess,
   });
+}
+
+async function handleOnSuccess(publicToken: string) {
+  const res = await initiateTokenExchange(publicToken);
+  const accessToken = await res.json();
+  console.log("ACCESS TOKEN: ", accessToken);
 }
