@@ -1,4 +1,6 @@
+import { Dispatch, SetStateAction } from "react";
 import { initiateTokenExchange, initiateEOBDataFetch } from "./fetchers";
+import { Bundle } from "fhir/r4";
 
 declare const FlexpaLink: {
   create: ({
@@ -11,21 +13,35 @@ declare const FlexpaLink: {
   open: () => unknown;
 };
 
-export function initializeFlexpaLink() {
-  FlexpaLink.create({
-    publishableKey: process.env.NEXT_PUBLIC_PUBLISHABLE_KEY ?? "",
-    onSuccess: handleOnSuccess,
-  });
+export function initializeFlexpaLink(
+  setEOBData: Dispatch<SetStateAction<Bundle | null>>,
+  setIsLoading: Dispatch<SetStateAction<boolean>>
+) {
+  if (process.env.NEXT_PUBLIC_PUBLISHABLE_KEY) {
+    FlexpaLink.create({
+      publishableKey: process.env.NEXT_PUBLIC_PUBLISHABLE_KEY,
+      onSuccess: (publicToken) =>
+        handleOnSuccess(publicToken, setEOBData, setIsLoading),
+    });
+  } else {
+    console.log("Please provide a PUBLISHABLE KEY environment variable.");
+  }
 }
 
-async function handleOnSuccess(publicToken: string) {
+async function handleOnSuccess(
+  publicToken: string,
+  setEOBData: Dispatch<SetStateAction<Bundle | null>>,
+  setIsLoading: Dispatch<SetStateAction<boolean>>
+) {
+  setIsLoading(true);
+
   const accessTokenResponse = await initiateTokenExchange(publicToken);
   const { accessToken }: { accessToken: string } =
     await accessTokenResponse.json();
 
   const EOBDataResponse = await initiateEOBDataFetch(accessToken);
-  const { EOBData } = await EOBDataResponse.json();
-  console.log("EOBDATA: ", EOBData);
+  const { EOBData }: { EOBData: Bundle } = await EOBDataResponse.json();
 
-  // setEOBData(EOBData);
+  setIsLoading(false);
+  setEOBData(EOBData);
 }

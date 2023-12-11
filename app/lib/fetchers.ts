@@ -1,3 +1,4 @@
+import { Bundle } from "fhir/r4";
 export async function initiateTokenExchange(publicToken: string) {
   return await fetch("/api/access-token-exchange", {
     method: "POST",
@@ -29,16 +30,41 @@ export async function initiateEOBDataFetch(accessToken: string) {
     },
   });
 }
-export async function fetchEOBData() {
-  return await fetch(
-    // "https://api.flexpa.com/fhir/ExplanationOfBenefit",
-    "https://api.flexpa.com/fhir/ExplanationOfBenefit?patient=$PATIENT_ID",
-    {
-      method: "GET",
-      headers: {
-        authorization: authorization ?? "",
-        "x-flexpa-raw": "0",
-      },
+
+async function fetchEOBData(authorization: string) {
+  return await fetch("https://api.flexpa.com/fhir/ExplanationOfBenefit", {
+    method: "GET",
+    headers: {
+      authorization,
+      "x-flexpa-raw": "0",
+    },
+  });
+}
+
+export async function fetchAndRetry(authorization: string) {
+  let retries = 0;
+  let delay = 1000;
+  let maxRetries = 10;
+
+  while (retries < maxRetries) {
+    try {
+      let response = await fetchEOBData(authorization);
+
+      if (response.status === 429) {
+        retries++;
+        console.log(
+          `Retry ${retries}/${maxRetries} after status 429. Waiting for ${delay} ms`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
+        delay *= 2;
+      } else {
+        return response;
+      }
+    } catch (error) {
+      throw error;
     }
-  );
+  }
+
+  throw new Error("Exceeded maximum retries");
 }
