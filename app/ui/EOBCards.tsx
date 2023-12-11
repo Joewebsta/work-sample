@@ -29,7 +29,7 @@ export default function EOBCards({ EOBData }: { EOBData: Bundle }) {
         return (
           <div
             className="border-t border-gray-200 bg-white drop-shadow-md rounded"
-            key={entry.id}
+            key={resource.id}
           >
             <dl className="divide-y divide-gray-200">
               <EOBCardRow label={"Type"} content={type} />

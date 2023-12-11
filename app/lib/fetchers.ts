@@ -10,16 +10,19 @@ export async function initiateTokenExchange(publicToken: string) {
 }
 
 export async function retrieveAccessToken(publicToken: string) {
-  return await fetch("https://api.flexpa.com/link/exchange", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      public_token: publicToken,
-      secret_key: process.env.FLEXPA_API_SECRET_KEY,
-    }),
-  });
+  return await fetch(
+    `${process.env.NEXT_PUBLIC_FLEXPA_API_BASEURL}/link/exchange`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        public_token: publicToken,
+        secret_key: process.env.FLEXPA_API_SECRET_KEY,
+      }),
+    }
+  );
 }
 
 export async function initiateEOBDataFetch(accessToken: string) {
@@ -32,13 +35,16 @@ export async function initiateEOBDataFetch(accessToken: string) {
 }
 
 async function fetchEOBData(authorization: string) {
-  return await fetch("https://api.flexpa.com/fhir/ExplanationOfBenefit", {
-    method: "GET",
-    headers: {
-      authorization,
-      "x-flexpa-raw": "0",
-    },
-  });
+  return await fetch(
+    `${process.env.NEXT_PUBLIC_FLEXPA_API_BASEURL}/fhir/ExplanationOfBenefit`,
+    {
+      method: "GET",
+      headers: {
+        authorization,
+        "x-flexpa-raw": "0",
+      },
+    }
+  );
 }
 
 export async function fetchAndRetry(authorization: string) {
