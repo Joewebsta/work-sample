@@ -1,4 +1,4 @@
-import { initiateTokenExchange } from "./fetchers";
+import { initiateTokenExchange, initiateEOBDataFetch } from "./fetchers";
 
 declare const FlexpaLink: {
   create: ({
@@ -19,7 +19,13 @@ export function initializeFlexpaLink() {
 }
 
 async function handleOnSuccess(publicToken: string) {
-  const res = await initiateTokenExchange(publicToken);
-  const accessToken = await res.json();
-  console.log("ACCESS TOKEN: ", accessToken);
+  const accessTokenResponse = await initiateTokenExchange(publicToken);
+  const { accessToken }: { accessToken: string } =
+    await accessTokenResponse.json();
+
+  const EOBDataResponse = await initiateEOBDataFetch(accessToken);
+  const { EOBData } = await EOBDataResponse.json();
+  console.log("EOBDATA: ", EOBData);
+
+  // setEOBData(EOBData);
 }
