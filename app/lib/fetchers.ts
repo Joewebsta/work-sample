@@ -1,50 +1,97 @@
-import { Bundle } from "fhir/r4";
 export async function initiateTokenExchange(publicToken: string) {
-  return await fetch("/api/access-token-exchange", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ publicToken }),
-  });
-}
-
-export async function retrieveAccessToken(publicToken: string) {
-  return await fetch(
-    `${process.env.NEXT_PUBLIC_FLEXPA_API_BASEURL}/link/exchange`,
-    {
+  try {
+    const response = await fetch("/api/access-token-exchange", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        public_token: publicToken,
-        secret_key: process.env.FLEXPA_API_SECRET_KEY,
-      }),
+      body: JSON.stringify({ publicToken }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error retrieving access token.");
     }
-  );
+
+    return response;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.log(error);
+      throw new Error(error.message);
+    }
+  }
+}
+
+export async function retrieveAccessToken(publicToken: string) {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_FLEXPA_API_BASEURL}/link/exchange`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          public_token: publicToken,
+          secret_key: process.env.FLEXPA_API_SECRET_KEY,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Error retrieving access token. Server responded with status code ${response.status}`
+      );
+    }
+
+    return response;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.log(error);
+      throw new Error(error.message);
+    }
+  }
 }
 
 export async function initiateEOBDataFetch(accessToken: string) {
-  return await fetch("/api/flexpa-fhir", {
-    method: "GET",
-    headers: {
-      authorization: `Bearer ${accessToken}`,
-    },
-  });
+  try {
+    const response = await fetch("/api/flexpa-fhir", {
+      method: "GET",
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error fetching EOB data.");
+    }
+
+    return response;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.log(error);
+      throw new Error(error.message);
+    }
+  }
 }
 
 async function fetchEOBData(authorization: string) {
-  return await fetch(
-    `${process.env.NEXT_PUBLIC_FLEXPA_API_BASEURL}/fhir/ExplanationOfBenefit`,
-    {
-      method: "GET",
-      headers: {
-        authorization,
-        "x-flexpa-raw": "0",
-      },
+  try {
+    return await fetch(
+      `${process.env.NEXT_PUBLIC_FLEXPA_API_BASEURL}/fhir/ExplanationOfBenefit`,
+      {
+        method: "GET",
+        headers: {
+          authorization,
+          "x-flexpa-raw": "0",
+        },
+      }
+    );
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.log(error);
+      throw new Error(error.message);
     }
-  );
+  }
 }
 
 export async function fetchAndRetry(authorization: string) {
@@ -54,9 +101,9 @@ export async function fetchAndRetry(authorization: string) {
 
   while (retries < maxRetries) {
     try {
-      let response = await fetchEOBData(authorization);
+      const response = await fetchEOBData(authorization);
 
-      if (response.status === 429) {
+      if (response && response.status === 429) {
         retries++;
         console.log(
           `Retry ${retries}/${maxRetries} after status 429. Waiting for ${delay} ms`

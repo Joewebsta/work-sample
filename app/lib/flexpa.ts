@@ -35,13 +35,20 @@ async function handleOnSuccess(
 ) {
   setIsLoading(true);
 
-  const accessTokenResponse = await initiateTokenExchange(publicToken);
-  const { accessToken }: { accessToken: string } =
-    await accessTokenResponse.json();
+  try {
+    const accessTokenResponse = await initiateTokenExchange(publicToken);
+    if (!accessTokenResponse) return;
+    const { accessToken }: { accessToken: string } =
+      await accessTokenResponse.json();
 
-  const EOBDataResponse = await initiateEOBDataFetch(accessToken);
-  const { EOBData }: { EOBData: Bundle } = await EOBDataResponse.json();
+    const EOBDataResponse = await initiateEOBDataFetch(accessToken);
+    if (!EOBDataResponse) return;
+    const { EOBData }: { EOBData: Bundle } = await EOBDataResponse.json();
 
-  setIsLoading(false);
-  setEOBData(EOBData);
+    setIsLoading(false);
+    setEOBData(EOBData);
+  } catch (error) {
+    console.log(error);
+    return;
+  }
 }

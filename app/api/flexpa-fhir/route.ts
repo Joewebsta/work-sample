@@ -11,8 +11,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const res = await fetchAndRetry(authorization);
-  const EOBData: Bundle = await res.json();
+  try {
+    const res = await fetchAndRetry(authorization);
+    if (res) {
+      const EOBData: Bundle = await res.json();
 
-  return NextResponse.json({ EOBData });
+      return NextResponse.json({ EOBData });
+    }
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.log(error);
+      throw new Error(error.message);
+    }
+  }
 }
