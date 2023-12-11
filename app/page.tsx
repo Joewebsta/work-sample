@@ -4,6 +4,7 @@ import { Bundle } from "fhir/r4";
 import { useState } from "react";
 import { initializeFlexpaLink } from "./lib/flexpa";
 import FlexpaLinkButton from "./ui/FlexpaLinkButton";
+import Loading from "./ui/Loading";
 import EOB from "./ui/EOB";
 
 export default function Home() {
@@ -17,7 +18,7 @@ export default function Home() {
           Flexpa Work Sample
         </h1>
         {!isLoading && !EOBData && <FlexpaLinkButton />}
-        {isLoading && <p className="text-center">Loading...</p>}
+        {isLoading && <Loading />}
         {EOBData && <EOB EOBData={EOBData} />}
       </main>
       <Script
